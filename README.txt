@@ -29,7 +29,8 @@ make sure that is what you would want!
 
 Usage
 -----
-% sh drupal_install.sh [-h] [Options] -d Directory < DB-Password
+% mkdir /YOUR/DRUPAL/DIR
+% sh drupal_install.sh [-h] [Options] -d /YOUR/DRUPAL/DIR < DB-Password
  1-line is (silently) read from STDIN: MySql database password.
  Options:
   -h: Help (and exit)

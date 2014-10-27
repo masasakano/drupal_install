@@ -65,7 +65,7 @@ if [ ! -d $defDir ]; then
       exit $exitstatus
     fi
   else
-    echo "FATAL: ($defDir) does not exist or is not directory.  Stop." >&2
+    echo "FATAL: ($defDir) does not exist or is not directory.  May use -f option?  Stop." >&2
     exit 1
   fi
 fi
