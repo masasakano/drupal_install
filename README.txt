@@ -37,14 +37,14 @@ Usage
   -n: Dryrun
   -f: Force - mkdir if the directory does not exist or destroy if contents exist
   -d: (Mandatory) Installing directory
-    NOTE: The directory should be empty (unless -f option is specified)!
+    NOTE: Directory should exist and be empty (unless -f option is specified)!
+  -c: Core-version (a single number, eg 7, or 'drupal-8.0'. Def: up to drush)
   -f: mkdir if the directory does not exist (even if -n is specified)
-  -d: (Mandatory) Installing directory
   -u,-m: Username(=Password), mail address of Administrator
   -q: Database name(=Database-user)
   -t: Site Title  (Def: 'Drupal Example')
   -s: Site Slogan (Def: 'Get the example right!')
-  -l: Site Locale (Def: gb)
+  -l: Site Locale (Def: en)
 
 Install
 -------

@@ -5,7 +5,7 @@
 #
 # Template of this file taken from shunit2-2.1.6/examples/mkdir_test.sh
 #
-# Usage: cd test/; sh ./test_drupal_install.sh
+# Usage: cd test/ && sh ./test_drupal_install.sh
 #
 # Unit test for drupal_install.
 
@@ -103,6 +103,37 @@ testDryrunBasic()
   assertEgrep 'testDryrunBasic() 2-1:' 'Fail.* read.* database' "$stderrM"
   rmdir $newDir
   cd $cwd
+}
+
+testCoreVersionOption()
+{
+  cwd=`pwd`
+  BaseDir=`basename $0`_testCoreVersionOption.$$
+  newDir=${testDir}/$BaseDir
+  mkdir -p $newDir
+
+  # no -c option
+  echo 'pass' | ${testCmd} -n -d $newDir >${stdoutF} 2>${stderrF}
+  rtrn=$?
+  assertTrue "testCoreVersionOption() 1:" ${rtrn}
+  stdoutM=`cat ${stdoutF} | grep 'drush dl' | head -n 1 | sed 's/.*=[^ ]*//'`" X"
+  assertEqualsWords "X"           "$stdoutM" '1' 
+
+  # -c 10
+  echo 'pass' | ${testCmd} -n -d $newDir -c 10 >${stdoutF} 2>${stderrF}
+  rtrn=$?
+  assertTrue "testCoreVersionOption() 2:" ${rtrn}
+  stdoutM=`cat ${stdoutF} | grep 'drush dl' | head -n 1 | sed 's/.*=[^ ]*//'`
+  assertEqualsWords "drupal-10.x" "$stdoutM" '1'
+
+  # -c drupal-8.0
+  echo 'pass' | ${testCmd} -n -d $newDir -c drupal-8.0 >${stdoutF} 2>${stderrF}
+  rtrn=$?
+  assertTrue "testCoreVersionOption() 3:" ${rtrn}
+  stdoutM=`cat ${stdoutF} | grep 'drush dl' | head -n 1 | sed 's/.*=[^ ]*//'`
+  assertEqualsWords "drupal-8.0"  "$stdoutM" '1'
+
+  rmdir $newDir
 }
 
 testDryrunAllOpts()

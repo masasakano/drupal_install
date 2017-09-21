@@ -4,36 +4,39 @@
 dryrun="FALSE"
 forcedir="FALSE"
 defDir=""
+defCoreVer=""
 adminUsername="admin"
 adminEmail="admin@example.com"
 dbHost="localhost"	# Change it here, if necessary!
 dbName="drupalmysql"
 siteName="Drupal Example"
 siteSlogan="Get the example right!"
-siteLocale="gb"
+siteLocale="en"
 
 ### Handle the command-line arguments
-usage="USAGE: sh $0 [-h] [Options] -d Directory < DB-Password\n
+usage="USAGE: sh $0 [-h] [Options] -d Directory < STDIN(DB-Password)\n
  1-line is (silently) read from STDIN: MySql database password.\n
  Options:\n
   -h: Help (and exit)\n
   -n: Dryrun\n
   -f: Force - mkdir if the directory does not exist or destroy if contents exist\n
   -d: (Mandatory) Installing directory\n
-    NOTE: The directory should be empty (unless -f option is specified)!\n
-  -u,-m: Username(=Password), mail address of Administrator\n
-  -q: Database name(=Database-user)\n
+    NOTE: Directory should exist and be empty (unless -f option is specified)!\n
+  -c: Core-version (a single number, eg 7, or 'drupal-8.0'. Def: up to drush)\n
+  -u,-m: Username(=Password. Def=admin), mail address of Administrator\n
+  -q: Database name(=Database-user) (Def: drupalmysql)\n
   -t: Site Title  (Def: 'Drupal Example')\n
   -s: Site Slogan (Def: 'Get the example right!')\n
-  -l: Site Locale (Def: gb)"
+  -l: Site Locale (Def: en)"
 
-while getopts hnfd:u:m:q:t:s:l: OPT
+while getopts hnfd:c:u:m:q:t:s:l: OPT
 do
   case $OPT in
     "h" ) echo $usage;     exit 0 ;;
     "n" ) dryrun="TRUE" ;;
     "f" ) forcedir="TRUE" ;;
     "d" ) OPTS_D="TRUE" ; defDir="$OPTARG" ;;
+    "c" ) OPTS_C="TRUE" ; defCoreVer="$OPTARG" ;;
     "u" ) OPTS_U="TRUE" ; adminUsername="$OPTARG" ;;
     "m" ) OPTS_M="TRUE" ; adminEmail="$OPTARG" ;;
     "q" ) OPTS_Q="TRUE" ; dbName="$OPTARG" ;;
@@ -48,10 +51,12 @@ shift `expr $OPTIND - 1`      # To cut the option parts.
 if [ "$#" -ne 0 ]; then
   echo "ERROR: No argument (but options) is accepted." >&2
   echo $usage;     exit 1
-elif [ X"$defDir" = 'X' ]; then
+elif [ "X$defDir" = 'X' ]; then
   echo "ERROR: [-d Directory] is mandatory.  (-h to dispaly help.)" >&2
   exit 1
 fi
+
+### Checking the installing directory
 
 if [ ! -d $defDir ]; then
   if [ $forcedir = "TRUE" ]; then
@@ -70,6 +75,18 @@ if [ ! -d $defDir ]; then
   fi
 fi
  
+### Adjusting the Drupal version
+
+if [ "X$defCoreVer" = "X" ]; then
+  # Do nothing (no version for Drupal-core is specified)
+  :
+elif [ "X"`echo $defCoreVer | sed 's/[0-9 ]*//'` = "X" ]; then
+  # Version is specified as a number.
+    defCoreVer="drupal-$defCoreVer.x"
+else
+  # Do nothing (Full Drupal version is specified, like drupal-8.0)
+  :
+fi
 
 ### Determine the directories
 cwd=`pwd`
@@ -88,12 +105,14 @@ httpDir=`dirname  $allDir`
 rootDir=`basename $allDir`
 cd $cwd
 
-if [ "$allDir" = "$cwd" -a $dryrun != "TRUE" ]; then
+if [ "$allDir" = "$cwd" ]; then
   echo "FATAL: Current directory can not be the installing directory, as it would be deleted and recreated.  Stop." >&2
   exit 1
 elif [ $num_allDirContents -ne 0 ]; then
   if [ $forcedir = "TRUE" ]; then
     echo "WARNING: Directory ($allDir) is not empty.  Overwritten." >&2
+  elif [ $dryrun = "TRUE" ]; then
+    echo "WARNING: Directory ($allDir) is not empty.  Specify -f if you want to destroy and recreate the directory.  (Continued, as a dry-run.)" >&2
   else
     echo "FATAL: Directory ($allDir) is not empty.  Specify -f if you want to destroy and recreate the directory.  Stop." >&2
     exit 1
@@ -132,7 +151,7 @@ midexitstatus="SUCCESS"
 
 # Download Core
 ##########################################################
-com="drush dl -y --destination=$httpDir --drupal-project-rename=$rootDir";
+com="drush dl -y --destination=$httpDir --drupal-project-rename=$rootDir $defCoreVer";
 echo "% $com"
 [ $dryrun = "TRUE" ] || $com
 exitstatus=$?
